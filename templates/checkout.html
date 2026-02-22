@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="flex flex-col md:flex-row gap-4 justify-between items-center mb-4">
+            <div>
+                <h1>Data Pengiriman</h1>
+                <p>Isi data lengkap supaya kurir gampang menemukan alamat kamu.</p>
+            </div>
+        </div>
+
+        <form method="post" class="checkout-grid">
+            <!-- Form Fields -->
+            <div class="card p-4">
+                <div class="card-body">
+                    <h3 class="mb-4">Informasi Penerima</h3>
+
+                    <div class="form-group">
+                        <label for="nama" class="form-label">Nama Lengkap</label>
+                        <input type="text" id="nama" name="nama" required class="form-control"
+                            placeholder="Nama penerima paket">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hp" class="form-label">Nomor WhatsApp</label>
+                        <input type="tel" id="hp" name="hp" required class="form-control" placeholder="08xxxxxxxxxx">
+                    </div>
+
+                    <!-- Share Location Section -->
+                    <div class="form-group">
+                        <label class="form-label">Lokasi Pengiriman</label>
+                        <div class="location-input-group">
+                            <input type="text" id="maps_link" name="maps_link" required
+                                class="form-control bg-gray-50 text-sm"
+                                placeholder="Link Google Maps akan muncul di sini">
+                            <button type="button" id="btn-share-loc" class="btn btn-outline btn-sm">
+                                <i class="fa-solid fa-location-crosshairs"></i> Ambil Lokasi
+                            </button>
+                        </div>
+                        <p id="loc-status" class="text-xs text-gray-500 mb-2"></p>
+                        <p class="text-xs text-gray-400 italic mb-4">
+                            *Jika lokasi tidak akurat (terutama di PC/Laptop), silakan buka Google Maps, cari lokasi
+                            Anda, lalu copy-paste link-nya ke sini.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="patokan" class="form-label">Detail Alamat / Patokan</label>
+                        <textarea id="patokan" name="patokan" rows="2" required class="form-control"
+                            placeholder="Warna pagar, nomor rumah, atau patokan khusus..."></textarea>
+                    </div>
+
+                    <Script>
+                        document.getElementById('btn-share-loc').addEventListener('click', function () {
+                            const status = document.getElementById('loc-status');
+                            const input = document.getElementById('maps_link');
+
+                            if (!navigator.geolocation) {
+                                status.textContent = "Browser tidak support Geolocation.";
+                                return;
+                            }
+
+                            status.textContent = "Sedang mencari lokasi...";
+
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                    const lat = position.coords.latitude;
+                                    const lng = position.coords.longitude;
+                                    const link = `https://www.google.com/maps?q=${lat},${lng}`;
+                                    input.value = link;
+                                    status.textContent = "Lokasi berhasil diambil!";
+                                    status.className = "text-xs text-green-600 mb-4";
+                                },
+                                (error) => {
+                                    status.textContent = "Gagal mengambil lokasi. Pastikan GPS aktif.";
+                                    status.className = "text-xs text-red-500 mb-4";
+                                }
+                            );
+                        });
+                    </Script>
+
+                    <div class="form-group" style="margin-top: 2rem;">
+                        <label class="form-label mb-2">Pilih Pembayaran</label>
+                        <div class="grid grid-2 payment-grid" style="gap: 1rem;">
+                            <label class="card p-2 cursor-pointer flex items-center gap-2 border hover:border-blue-500">
+                                <input type="radio" name="metode_bayar" value="Transfer" required
+                                    class="accent-blue-600">
+                                <div>
+                                    <span class="font-bold block">Transfer Bank</span>
+                                    <span class="text-xs text-gray-500">Manual cek</span>
+                                </div>
+                            </label>
+                            <label class="card p-2 cursor-pointer flex items-center gap-2 border hover:border-blue-500">
+                                <input type="radio" name="metode_bayar" value="QRIS" required class="accent-blue-600">
+                                <div>
+                                    <span class="font-bold block">QRIS</span>
+                                    <span class="text-xs text-gray-500">Otomatis / E-Wallet</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary & Submit -->
+            <div class="flex flex-col gap-4">
+                <div class="card bg-gray-50">
+                    <div class="card-body">
+                        <h3 class="card-title">Jadwal Pengiriman</h3>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-white p-2 rounded text-primary text-xl shadow-sm">
+                                <i class="fa-solid fa-calendar-day"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-lg text-primary" style="margin: 0;">Sabtu, 14 Februari</p>
+                                <p class="text-xs text-gray-500" style="margin: 0;">Batch Minggu Ini</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">
+                            Pastikan ada orang di rumah untuk menerima paket ikan segar.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Konfirmasi</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Data pesanan sudah benar? Ikan akan dipesan khusus untuk kamu.
+                        </p>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg">
+                            <i class="fa-solid fa-paper-plane"></i> Kirim Pesanan
+                        </button>
+                        <p class="text-xs text-center text-gray-400 mt-2">
+                            Transaksi aman & terpercaya
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

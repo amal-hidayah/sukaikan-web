@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Keranjang Belanja - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section bg-white">
+    <div class="container">
+        <h1 style="margin-bottom: 2rem;">Keranjang Belanja</h1>
+
+        {% if items %}
+        <div class="cart-grid">
+            <!-- Cart Items -->
+            <div class="cart-items">
+                <div class="card">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th class="text-center">Jumlah</th>
+                                <th class="text-right">Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>
+                                    <div class="flex items-center gap-4">
+                                        <div
+                                            style="width: 60px; height: 60px; background: var(--ocean-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary-blue); overflow: hidden; flex-shrink: 0;">
+                                            {% if item.product.image_path %}
+                                            <img src="{{ url_for('uploaded_file', filename=item.product.image_path) }}"
+                                                alt="{{ item.nama }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% else %}
+                                            <i class="fa-solid fa-fish"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h4 style="margin: 0; font-size: 1rem;">{{ item.product.nama }}</h4>
+                                            <p class="text-xs text-gray-500" style="margin: 0;">{{ item.product.ukuran
+                                                }}</p>
+                                            <p class="text-xs text-primary font-bold">Rp {{
+                                                "{:,.0f}".format(item.product.harga_per_kg) }} / kg</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span style="font-weight: 600; font-size: 1.1rem;">{{ item.qty }}</span> <span
+                                        class="text-sm text-gray-500">kg</span>
+                                </td>
+                                <td class="text-right font-bold">
+                                    Rp {{ "{:,.0f}".format(item.subtotal) }}
+                                </td>
+                                <td class="text-center">
+                                    <form action="{{ url_for('hapus_dari_keranjang') }}" method="post">
+                                        <input type="hidden" name="product_id" value="{{ item.product_id }}">
+                                        <button type="submit" class="btn btn-ghost btn-sm text-red-500 hover:bg-red-50"
+                                            title="Hapus">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div>
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">Ringkasan Pesanan</h3>
+                        <div class="flex justify-between items-center"
+                            style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--gray-200);">
+                            <span class="text-gray-600">Total Estimasi</span>
+                            <span class="text-2xl font-bold text-primary">Rp {{ "{:,.0f}".format(total) }}</span>
+                        </div>
+
+                        <div class="alert alert-info text-xs">
+                            <i class="fa-solid fa-circle-info"></i> Total akhir akan ditimbang ulang saat pengiriman.
+                        </div>
+
+                        <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-block"
+                            style="margin-bottom: 1rem;">
+                            Lanjut ke Checkout <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                        <a href="{{ url_for('katalog') }}" class="btn btn-outline btn-block btn-sm">
+                            Tambah Produk Lain
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div style="font-size: 5rem; color: var(--gray-300); margin-bottom: 1rem;">
+                <i class="fa-solid fa-basket-shopping"></i>
+            </div>
+            <h3>Keranjangmu masih kosong</h3>
+            <p class="text-gray-500 mb-4">Yuk, isi dengan ikan segar hari ini!</p>
+            <a href="{{ url_for('katalog') }}" class="btn btn-primary">Mulai Belanja</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

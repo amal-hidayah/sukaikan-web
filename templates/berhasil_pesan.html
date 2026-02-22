@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Pesanan Berhasil - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 800px;">
+        <div class="text-center mb-8">
+            <div style="font-size: 5rem; color: var(--success); margin-bottom: 1rem;">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h1 class="text-primary">Pesanan Berhasil Dibuat!</h1>
+            <p class="text-gray-500 text-lg">
+                Terima kasih, ikan segar pilihanmu sudah masuk antrian batch minggu ini.
+            </p>
+        </div>
+
+        <div class="payment-grid">
+            <!-- Order Summary -->
+            <div class="card bg-gray-50">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-primary mb-4">Ringkasan</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="text-gray-500">Nama</span>
+                            <span class="font-medium text-right">{{ order.nama }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="text-gray-500">Total Tagihan</span>
+                            <span class="font-bold text-primary text-xl">Rp {{ "{:,.0f}".format(order.total) }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="text-gray-500">Metode Bayar</span>
+                            <span class="font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{{
+                                order.metode_bayar }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Instructions -->
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if is_expired %}
+                    <div style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <h3 class="card-title text-danger mb-4">Waktu Pembayaran Habis</h3>
+                    <p class="text-gray-600 mb-6">
+                        Maaf, waktu pembayaran Anda (5 menit) telah habis. Pesanan ini otomatis dibatalkan.
+                    </p>
+                    <a href="{{ url_for('checkout') }}" class="btn btn-primary">Pesan Ulang</a>
+
+                    {% else %}
+                    <h3 class="card-title mb-4">Selesaikan Pembayaran</h3>
+
+                    <div class="alert alert-warning mb-4 font-bold">
+                        <i class="fa-solid fa-clock"></i> Sisa Waktu: <span id="payment-timer">05:00</span>
+                    </div>
+
+                    {% if snap_token %}
+                    <div class="alert alert-info mb-4">
+                        <i class="fa-solid fa-lock"></i> Pembayaran Aman dengan Midtrans
+                    </div>
+
+                    <p class="text-gray-600 mb-6">
+                        Silakan klik tombol di bawah untuk memilih metode pembayaran
+                        (QRIS, GoPay, ShopeePay, Virtual Account, dll).
+                    </p>
+
+                    <button id="pay-button" class="btn btn-primary btn-lg shadow-lg">
+                        <i class="fa-regular fa-credit-card"></i> Bayar Sekarang
+                    </button>
+
+                    <!-- Snap.js -->
+                    <script src="https://app.sandbox.midtrans.com/snap/snap.js"
+                        data-client-key="{{ client_key }}"></script>
+                    <script type="text/javascript">
+                        // Timer Logic
+                        var deadlineStr = "{{ order.payment_deadline }}"; // ISO UTC string from Python
+                        // Convert UTC string to local time for JS
+                        var deadline = new Date(deadlineStr + "Z"); // Append Z to indicate UTC if not present
+
+                        function updateTimer() {
+                            var now = new Date();
+                            var diff = deadline - now;
+
+                            if (diff <= 0) {
+                                document.getElementById("payment-timer").innerText = "00:00";
+                                location.reload(); // Refresh to show expired state
+                                return;
+                            }
+
+                            var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                            document.getElementById("payment-timer").innerText =
+                                (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+                        }
+
+                        setInterval(updateTimer, 1000);
+                        updateTimer(); // Initial call
+
+                        // Payment Logic
+                        var payButton = document.getElementById('pay-button');
+                        var snapToken = '{{ snap_token }}';
+
+                        payButton.addEventListener('click', function () {
+                            if (snapToken === 'DUMMY_TOKEN_FOR_DEMO') {
+                                // Mock Success for Demo
+                                alert("MODE DEMO: Simulasi Pembayaran Berhasil! ✅\n\n(Di sistem asli, ini akan membuka popup Midtrans)");
+                                window.location.href = "{{ url_for('beranda') }}";
+                            } else {
+                                // Real Midtrans Popup
+                                window.snap.pay(snapToken, {
+                                    onSuccess: function (result) {
+                                        alert("Pembayaran Berhasil!");
+                                        window.location.href = "{{ url_for('beranda') }}";
+                                    },
+                                    onPending: function (result) {
+                                        alert("Menunggu pembayaran...");
+                                    },
+                                    onError: function (result) {
+                                        alert("Pembayaran gagal!");
+                                    },
+                                    onClose: function () {
+                                        alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        Maaf, sistem pembayaran sedang gangguan. Silakan hubungi Admin.
+                    </div>
+                    <a href="https://wa.me/6281234567890" class="btn btn-outline">Hubungi Admin</a>
+                    {% endif %}
+                    {% endif %}
+
+                    <div class="mt-6 pt-4 border-t">
+                        <p class="text-xs text-gray-400">
+                            Pesanan akan otomatis diproses setelah pembayaran berhasil.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+</section>
+{% endblock %}

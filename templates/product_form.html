@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Produk - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container max-w-lg mx-auto">
+        <div class="mb-6">
+            <a href="{{ url_for('admin_dashboard') }}" class="text-gray-500 hover:text-primary">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title mb-6">{{ action }} Produk</h1>
+                <form method="post" enctype="multipart/form-data">
+                    <div class="form-group mb-4">
+                        <label class="form-label">Nama Produk</label>
+                        <input type="text" name="nama" value="{{ product.nama if product else '' }}"
+                            class="form-control" required>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label">Foto Produk (Opsional)</label>
+                        {% if product and product.image_path %}
+                        <div class="mb-2">
+                            <img src="{{ url_for('uploaded_file', filename=product.image_path) }}" alt="Current Image"
+                                style="height: 100px; border-radius: 8px;">
+                            <p class="text-xs text-gray-500">Foto saat ini terpasang.</p>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="image" class="form-control">
+                        <p class="text-xs text-gray-400 mt-1">Format: JPG, PNG. Maks 2MB.</p>
+                    </div>
+
+                    <div class="grid grid-2 gap-4 mb-4">
+                        <div class="form-group">
+                            <label class="form-label">Kategori</label>
+                            <select name="kategori" class="form-control" required>
+                                <option value="ikan-laut" {% if product and product.kategori=='ikan-laut' %}selected{%
+                                    endif %}>Ikan Laut</option>
+                                <option value="udang-cumi" {% if product and product.kategori=='udang-cumi' %}selected{%
+                                    endif %}>Udang & Cumi</option>
+                                <option value="kerang" {% if product and product.kategori=='kerang' %}selected{% endif
+                                    %}>Kerang</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Harga per Kg (Rp)</label>
+                            <input type="number" name="harga_per_kg"
+                                value="{{ product.harga_per_kg if product else '' }}" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label">Deskripsi Ukuran</label>
+                        <input type="text" name="ukuran" value="{{ product.ukuran if product else '' }}"
+                            class="form-control" placeholder="Contoh: Sedang, 3-4 ekor/kg">
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label">Deskripsi Tekstur</label>
+                        <input type="text" name="tekstur" value="{{ product.tekstur if product else '' }}"
+                            class="form-control" placeholder="Contoh: Daging lembut, cocok bakar">
+                    </div>
+
+                    {% if action == 'Edit' %}
+                    <div class="form-group mb-6">
+                        <label class="form-label">Label Musim (Opsional)</label>
+                        <input type="text" name="label_musim" value="{{ product.label_musim if product else '' }}"
+                            class="form-control" placeholder="Contoh: Fresh Minggu Ini">
+                        <p class="text-xs text-gray-400 mt-1">Isi jika produk ini sedang musim/highlight.</p>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary btn-block">Simpan Produk</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

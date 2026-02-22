@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Katalog - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
+            <div>
+                <h1>Pasar Ikan Online</h1>
+                <p>Pilih ikan segar langsung dari perahu nelayan untuk stok masak di rumah.</p>
+            </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 2rem;">
+            <form method="get" class="flex flex-col gap-4">
+                <div class="flex flex-col md:flex-row justify-between gap-4">
+                    <!-- Categories -->
+                    <div class="flex gap-2 flex-wrap">
+                        <button type="submit" name="kategori" value=""
+                            class="btn btn-slim {% if not kategori %}btn-primary{% else %}btn-outline{% endif %}">
+                            Semua
+                        </button>
+                        <button type="submit" name="kategori" value="ikan-laut"
+                            class="btn btn-slim {% if kategori == 'ikan-laut' %}btn-primary{% else %}btn-outline{% endif %}">
+                            Ikan Laut
+                        </button>
+                        <button type="submit" name="kategori" value="udang-cumi"
+                            class="btn btn-slim {% if kategori == 'udang-cumi' %}btn-primary{% else %}btn-outline{% endif %}">
+                            Udang & Cumi
+                        </button>
+                        <button type="submit" name="kategori" value="kerang"
+                            class="btn btn-slim {% if kategori == 'kerang' %}btn-primary{% else %}btn-outline{% endif %}">
+                            Kerang
+                        </button>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="flex gap-2">
+                        <input type="search" name="q" value="{{ q }}" placeholder="Cari ikan..." class="form-control"
+                            style="width: 250px;">
+                        <button type="submit" class="btn btn-primary btn-slim">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="grid grid-4">
+            {% for p in produk %}
+            <div class="card product-card">
+                <div class="card-img-wrapper">
+                    {% if p.image_path %}
+                    <img src="{{ url_for('uploaded_file', filename=p.image_path) }}" alt="{{ p.nama }}"
+                        class="card-img">
+                    {% else %}
+                    <div class="card-placeholder">
+                        <i class="fa-solid fa-fish"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Detail Overlay Link could go here, or just wrap image -->
+                    <a href="{{ url_for('detail_produk', product_id=p.id) }}" style="position: absolute; inset: 0;"></a>
+                </div>
+
+                <div class="card-body">
+                    <a href="{{ url_for('detail_produk', product_id=p.id) }}" style="text-decoration: none;">
+                        <h3 class="card-title hover:text-primary transition">{{ p.nama }}</h3>
+                    </a>
+                    <p class="card-meta">{{ p.ukuran }}</p>
+                    <div class="card-price">
+                        Rp {{ "{:,.0f}".format(p.harga_per_kg) }} <span>/kg</span>
+                    </div>
+
+                    <form action="{{ url_for('tambah_ke_keranjang') }}" method="post">
+                        <input type="hidden" name="product_id" value="{{ p.id }}">
+                        <input type="hidden" name="next" value="{{ url_for('katalog') }}">
+
+                        <div class="card-actions">
+                            <div class="qty-stepper">
+                                <button type="button" class="qty-btn" onclick="updateQty(this, -1)">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <input type="number" name="qty" value="1" min="1" max="100" readonly class="qty-input">
+                                <button type="button" class="qty-btn" onclick="updateQty(this, 1)">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <button type="submit" class="btn-add">
+                                <i class="fa-solid fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-span-full text-center py-10 card">
+                <div class="card-body">
+                    <i class="fa-solid fa-face-sad-tear text-gray-300"
+                        style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                    <h3>Yah, produk tidak ditemukan.</h3>
+                    <p>Coba kata kunci lain atau cek lagi nanti ya.</p>
+                    <a href="{{ url_for('katalog') }}" class="btn btn-outline">Lihat Semua Produk</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<script>
+    function updateQty(btn, change) {
+        const input = btn.parentElement.querySelector('input[name="qty"]');
+        let val = parseInt(input.value);
+        val += change;
+        if (val < 1) val = 1;
+        input.value = val;
+    }
+</script>
+{% endblock %}

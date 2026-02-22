@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Lacak Pesanan - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 800px;">
+        <div class="text-center mb-5">
+            <h1>Lacak Pesanan</h1>
+            <p class="text-gray-500">Pantau perjalanan ikan segar kamu sampai ke rumah.</p>
+        </div>
+
+        <div class="card p-4 mb-4">
+            <form method="post" class="flex gap-2">
+                <input type="tel" id="hp" name="hp" required value="{{ hp }}" class="form-control"
+                    placeholder="Masukkan Nomor WhatsApp (Contoh: 08123456789)">
+                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Cek Status
+                </button>
+            </form>
+        </div>
+
+        {% if orders %}
+        <div class="space-y-6">
+            {% for o in orders %}
+            <div class="card p-4">
+                <div class="flex justify-between items-start mb-4 border-b pb-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-lg">#{{ o.id }}</span>
+                            <span class="text-sm text-gray-500">{{ o.created_at[:10] }}</span>
+                        </div>
+                        <p class="text-sm text-gray-600">{{ o.items_json|length }} Item • Total: <strong>Rp {{
+                                "{:,.0f}".format(o.total) }}</strong></p>
+                    </div>
+                    <div class="text-right">
+                        {% if o.status == 'Menunggu Pembayaran' %}
+                        {% if o.is_expired %}
+                        <span class="tag" style="background: var(--gray-200); color: var(--gray-600);">Dibatalkan</span>
+                        {% else %}
+                        <span class="tag" style="background: #FEF3C7; color: #D97706;">Menunggu Pembayaran</span>
+                        {% endif %}
+                        {% elif o.status == 'Sudah Dibayar' or o.status == 'Lunas' %}
+                        <span class="tag" style="background: #D1FAE5; color: #059669;">Lunas</span>
+                        {% else %}
+                        <span class="tag">{{ o.status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-500">Estimasi Pengiriman</p>
+                        <p class="font-medium">{{ o.tanggal_pengiriman }}</p>
+                    </div>
+
+                    <div>
+                        {% if o.status == 'Menunggu Pembayaran' and not o.is_expired %}
+                        <a href="{{ url_for('bayar_ulang', order_id=o.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fa-regular fa-credit-card"></i> Bayar Sekarang
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif hp %}
+        <div class="alert alert-warning mt-4">
+            <i class="fa-solid fa-circle-exclamation"></i> Tidak ditemukan riwayat pesanan untuk nomor HP tersebut.
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

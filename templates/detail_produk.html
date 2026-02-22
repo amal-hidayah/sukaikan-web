@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.nama }} - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section bg-white">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav style="margin-bottom: 2rem;">
+            <a href="{{ url_for('beranda') }}" class="text-gray-500 hover:text-primary">Beranda</a>
+            <span class="text-gray-400">/</span>
+            <a href="{{ url_for('katalog') }}" class="text-gray-500 hover:text-primary">Katalog</a>
+            <span class="text-gray-400">/</span>
+            <span class="text-primary font-medium">{{ product.nama }}</span>
+        </nav>
+
+        <div class="detail-grid">
+            <!-- Product Image -->
+            <div class="detail-gallery">
+                {% if product.image_path %}
+                <img src="{{ url_for('uploaded_file', filename=product.image_path) }}" alt="{{ product.nama }}"
+                    class="card" style="width: 100%; height: auto; border-radius: 2rem; box-shadow: var(--shadow-lg);">
+                {% else %}
+                <div class="card"
+                    style="border: none; box-shadow: none; background: var(--ocean-light); border-radius: 2rem; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; font-size: 8rem; color: var(--primary-blue);">
+                    <i class="fa-solid fa-fish"></i>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Product Info -->
+            <div class="detail-info">
+                <h1 class="detail-title">{{ product.nama }}</h1>
+                <div class="flex items-center gap-2" style="margin-bottom: 1.5rem;">
+                    <span class="tag tag-hot">Segar</span>
+                    <span class="text-gray-500 text-sm"><i class="fa-solid fa-check"></i> Tersedia di Batch Ini</span>
+                </div>
+
+                <div class="price-block">
+                    <span class="text-3xl font-bold text-primary">Rp {{ "{:,.0f}".format(product.harga_per_kg) }}</span>
+                    <span class="text-gray-500">/ kg</span>
+                </div>
+
+                <p class="detail-description">
+                    Ikan {{ product.nama }} pilihan dengan kualitas terbaik.
+                    Cocok untuk berbagai olahan masakan rumah.
+                    <strong>Tekstur:</strong> {{ product.tekstur }}.
+                    <strong>Ukuran:</strong> {{ product.ukuran }}.
+                </p>
+
+                <form id="add-to-cart-form" action="{{ url_for('tambah_ke_keranjang') }}" method="post"
+                    class="card cart-form">
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="next" value="{{ url_for('keranjang') }}">
+
+                    <label class="form-label" style="font-weight: 600;">Mau pesan berapa kg?</label>
+                    <div class="cart-actions">
+                        <!-- Quantity Stepper -->
+                        <div class="flex items-center gap-2">
+                            <button type="button" class="btn btn-outline px-3 py-2" onclick="updateQty(this, -1)">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <input type="number" name="qty" min="1" value="1" readonly class="qty-input"
+                                style="width: 80px !important;">
+                            <button type="button" class="btn btn-outline px-3 py-2" onclick="updateQty(this, 1)">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block flex-1" id="add-to-cart-btn">
+                            <i class="fa-solid fa-cart-plus"></i> Masukkan Keranjang
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        *Berat final ditimbang saat pengiriman, harga menyesuaikan berat aktual.
+                    </p>
+                </form>
+
+                <div class="features grid grid-2" style="margin-top: 2rem; gap: 1rem;">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-snowflake text-primary"></i> <span class="text-sm">Es Batu Melimpah</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-hands-wash text-primary"></i> <span class="text-sm">Sudah
+                            Dibersihkan</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+    function updateQty(btn, change) {
+        var input = btn.parentElement.querySelector('input');
+        var min = parseInt(input.min) || 1;
+        var val = parseInt(input.value) || min;
+        val += change;
+        if (val < min) val = min;
+        input.value = val;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}SUKAIKAN - Marketplace Ikan Segar No. 1{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/png">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1000,9999) | random }}">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{{ url_for('beranda') }}" class="brand">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SUKAIKAN"
+                    style="height: 60px; width: auto;">
+            </a>
+
+            <!-- Mobile Actions (Cart + Toggle) -->
+            <div class="mobile-actions">
+                <a href="{{ url_for('keranjang') }}" class="cart-icon mobile-cart">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="cart-count" {% if cart_count==0 %}style="display:none" {% endif %}>{{ cart_count
+                        }}</span>
+                </a>
+                <button class="mobile-nav-toggle" aria-label="Toggle Navigation">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Desktop Nav -->
+            <nav class="main-nav">
+                <a href="{{ url_for('beranda') }}" class="nav-link">Beranda</a>
+                <a href="{{ url_for('katalog') }}" class="nav-link">Pasar Ikan</a>
+                <a href="{{ url_for('lacak_pesanan') }}" class="nav-link">Lacak Pesanan</a>
+                <a href="{{ url_for('edukasi') }}" class="nav-link">Edukasi</a>
+            </nav>
+
+            <!-- Desktop Actions -->
+            <div class="header-actions">
+                <a href="{{ url_for('keranjang') }}" class="cart-icon desktop-cart">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="cart-count" {% if cart_count==0 %}style="display:none" {% endif %}>{{ cart_count
+                        }}</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu">
+            <nav class="mobile-nav-links">
+                <a href="{{ url_for('beranda') }}" class="nav-link">Beranda</a>
+                <a href="{{ url_for('katalog') }}" class="nav-link">Pasar Ikan</a>
+                <a href="{{ url_for('lacak_pesanan') }}" class="nav-link">Lacak Pesanan</a>
+                <a href="{{ url_for('edukasi') }}" class="nav-link">Edukasi</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="brand">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SUKAIKAN"
+                            style="height: 50px; width: auto; filter: brightness(0) invert(1);">
+                    </div>
+                    <p style="margin-top: 1rem;">
+                        Marketplace seafood segar pertama di Indonesia dengan sistem Pre-Order.
+                        Menghubungkan nelayan lokal langsung dengan dapur rumah tangga.
+                    </p>
+                    <div class="flex gap-4" style="margin-top: 1rem;">
+                        <a href="#"><i class="fa-brands fa-instagram fa-lg"></i></a>
+                        <a href="#"><i class="fa-brands fa-whatsapp fa-lg"></i></a>
+                        <a href="#"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Navigasi</h4>
+                    <ul>
+                        <li><a href="{{ url_for('beranda') }}">Beranda</a></li>
+                        <li><a href="{{ url_for('katalog') }}">Katalog Segar</a></li>
+                        <li><a href="{{ url_for('lacak_pesanan') }}">Lacak Pesanan</a></li>
+                        <li><a href="{{ url_for('edukasi') }}">Edukasi Laut</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Bantuan</h4>
+                    <ul>
+                        <li><a href="#">Cara Pemesanan</a></li>
+                        <li><a href="#">Jadwal Pengiriman</a></li>
+                        <li><a href="#">Garansi Kesegaran</a></li>
+                        <li><a href="#">Hubungi Kami</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; {{ 2026 }} SUKAIKAN. Dibuat dengan cinta untuk laut Indonesia.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Gemini AI Chat Floating Bubble -->
+    <button class="ai-fab" id="ai-fab" onclick="toggleAiChat()" title="Tanya AI tentang ikan">
+        <i class="fa-solid fa-robot"></i>
+    </button>
+
+    <!-- Gemini AI Chat Panel -->
+    <div class="ai-chat-panel" id="ai-chat-panel">
+        <div class="ai-chat-header">
+            <div class="ai-chat-header-info">
+                <i class="fa-solid fa-robot"></i>
+                <div>
+                    <strong>IKAN AI</strong>
+                    <span class="text-xs" style="display:block; opacity:0.8;">Powered by Gemini</span>
+                </div>
+            </div>
+            <button class="ai-chat-close" onclick="toggleAiChat()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="ai-chat-messages" id="ai-chat-messages">
+            <div class="ai-msg ai-msg-bot">
+                <div class="ai-msg-avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="ai-msg-bubble">
+                    Halo! 👋 Saya IKAN AI, pakar ikan dari SUKAIKAN.<br>
+                    Tanyakan apa saja tentang <strong>gizi</strong>, <strong>resep</strong>, atau rekomendasi produk
+                    ikan!
+                </div>
+            </div>
+        </div>
+        <form class="ai-chat-input" id="ai-chat-form" onsubmit="sendAiMessage(event)">
+            <input type="text" id="ai-chat-input" placeholder="Contoh: Gizi ikan kembung..." autocomplete="off">
+            <button type="submit" id="ai-send-btn">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Flash Messages / Toasts -->
+    <div class="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="toast-box toast-{{ category if category != 'message' else 'info' }}">
+            <div class="toast-icon">
+                {% if category == 'success' %}
+                <i class="fa-solid fa-circle-check"></i>
+                {% elif category == 'danger' or category == 'error' %}
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {% elif category == 'warning' %}
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                {% else %}
+                <i class="fa-solid fa-circle-info"></i>
+                {% endif %}
+            </div>
+            <div class="toast-content">
+                <span class="toast-title">
+                    {% if category == 'success' %}Berhasil!{% elif category == 'danger' or category == 'error' %}Terjadi
+                    Kesalahan{% elif category == 'warning' %}Perhatian{% else %}Info{% endif %}
+                </span>
+                <p class="toast-message">{{ message }}</p>
+            </div>
+            <button type="button" class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="toast-progress">
+                <div class="toast-progress-bar"></div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        // === Toast System ===
+        function showToast(category, title, message) {
+            const container = document.querySelector('.toast-container');
+            if (!container) return;
+
+            const toastBox = document.createElement('div');
+            toastBox.className = 'toast-box toast-' + category;
+
+            let iconHtml = '';
+            if (category === 'success') iconHtml = '<i class="fa-solid fa-circle-check"></i>';
+            else if (category === 'danger' || category === 'error') iconHtml = '<i class="fa-solid fa-circle-exclamation"></i>';
+            else if (category === 'warning') iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            else iconHtml = '<i class="fa-solid fa-circle-info"></i>';
+
+            toastBox.innerHTML =
+                '<div class="toast-icon">' + iconHtml + '</div>' +
+                '<div class="toast-content">' +
+                '<span class="toast-title">' + title + '</span>' +
+                '<p class="toast-message">' + message + '</p>' +
+                '</div>' +
+                '<button type="button" class="toast-close" onclick="this.parentElement.remove()">' +
+                '<i class="fa-solid fa-xmark"></i>' +
+                '</button>' +
+                '<div class="toast-progress"><div class="toast-progress-bar"></div></div>';
+
+            container.appendChild(toastBox);
+
+            // Auto dismiss after progress bar animation
+            var progressBar = toastBox.querySelector('.toast-progress-bar');
+            if (progressBar) {
+                progressBar.addEventListener('animationend', function () {
+                    dismissToast(toastBox);
+                });
+            } else {
+                setTimeout(function () { dismissToast(toastBox); }, 4000);
+            }
+        }
+
+        function dismissToast(toast) {
+            toast.classList.add('hiding');
+            toast.addEventListener('animationend', function () {
+                toast.remove();
+            });
+        }
+
+        // === AJAX Add to Cart (site-wide) ===
+        function handleAjaxCartSubmit(e) {
+            e.preventDefault();
+            var form = e.target;
+            var submitBtn = form.querySelector('button[type="submit"]');
+            var originalBtnHtml = submitBtn.innerHTML;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menambahkan...';
+
+            var formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        // Update ALL cart-count badges in header
+                        var badges = document.querySelectorAll('.cart-count');
+                        badges.forEach(function (el) {
+                            el.textContent = data.cart_count;
+                            el.style.display = 'flex';
+                        });
+                        showToast('success', 'Berhasil!', data.message);
+                    } else {
+                        showToast('danger', 'Gagal', data.message || 'Terjadi kesalahan.');
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Cart error:', error);
+                    showToast('danger', 'Gagal', 'Terjadi kesalahan jaringan.');
+                })
+                .finally(function () {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Auto dismiss existing flash toasts
+            var toasts = document.querySelectorAll('.toast-box');
+            toasts.forEach(function (toast) {
+                var progressBar = toast.querySelector('.toast-progress-bar');
+                if (progressBar) {
+                    progressBar.addEventListener('animationend', function () {
+                        dismissToast(toast);
+                    });
+                } else {
+                    setTimeout(function () { dismissToast(toast); }, 4000);
+                }
+            });
+
+            // Mobile menu toggle
+            var toggleBtn = document.querySelector('.mobile-nav-toggle');
+            var mobileMenu = document.querySelector('.mobile-menu');
+
+            if (toggleBtn && mobileMenu) {
+                toggleBtn.addEventListener('click', function () {
+                    mobileMenu.classList.toggle('active');
+                    toggleBtn.classList.toggle('active-icon');
+
+                    var icon = toggleBtn.querySelector('i');
+                    if (mobileMenu.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-xmark');
+                    } else {
+                        icon.classList.remove('fa-xmark');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
+
+            // Attach AJAX handler to ALL add-to-cart forms site-wide
+            var cartForms = document.querySelectorAll('form[action*="keranjang/tambah"]');
+            cartForms.forEach(function (form) {
+                form.addEventListener('submit', handleAjaxCartSubmit);
+            });
+        });
+
+        // === Gemini AI Chat ===
+        function toggleAiChat() {
+            var panel = document.getElementById('ai-chat-panel');
+            var fab = document.getElementById('ai-fab');
+            panel.classList.toggle('active');
+            fab.classList.toggle('active');
+        }
+
+        // Optimized lag-free typewriter effect
+        function typewriterEffect(element, html, callback) {
+            var tokens = html.match(/<[^>]+>|[^<]+/g) || [html];
+            var tokenIndex = 0;
+            var charIndex = 0;
+            var currentTextNode = null;
+            var rafId = null;
+
+            function processNext() {
+                var steps = 0;
+                while (tokenIndex < tokens.length && steps < 3) {
+                    var token = tokens[tokenIndex];
+                    if (token.charAt(0) === '<') {
+                        var wrapper = document.createElement('span');
+                        wrapper.innerHTML = token;
+                        while (wrapper.firstChild) {
+                            element.appendChild(wrapper.firstChild);
+                        }
+                        tokenIndex++;
+                        charIndex = 0;
+                        currentTextNode = null;
+                    } else {
+                        if (!currentTextNode) {
+                            currentTextNode = document.createTextNode('');
+                            element.appendChild(currentTextNode);
+                        }
+                        var end = Math.min(charIndex + 3, token.length);
+                        currentTextNode.textContent += token.substring(charIndex, end);
+                        charIndex = end;
+                        steps++;
+                        if (charIndex >= token.length) {
+                            tokenIndex++;
+                            charIndex = 0;
+                            currentTextNode = null;
+                        }
+                    }
+                }
+                var parent = element.closest('.ai-chat-messages');
+                if (parent) parent.scrollTop = parent.scrollHeight;
+
+                if (tokenIndex < tokens.length) {
+                    rafId = requestAnimationFrame(processNext);
+                } else {
+                    if (callback) callback();
+                }
+            }
+            rafId = requestAnimationFrame(processNext);
+        }
+
+        function sendAiMessage(e) {
+            e.preventDefault();
+            var input = document.getElementById('ai-chat-input');
+            var messages = document.getElementById('ai-chat-messages');
+            var sendBtn = document.getElementById('ai-send-btn');
+            var question = input.value.trim();
+            if (!question) return;
+
+            // Add user message
+            var userMsg = document.createElement('div');
+            userMsg.className = 'ai-msg ai-msg-user';
+            userMsg.innerHTML = '<div class="ai-msg-bubble">' + question + '</div>';
+            messages.appendChild(userMsg);
+
+            input.value = '';
+            sendBtn.disabled = true;
+
+            // Add typing indicator
+            var typingMsg = document.createElement('div');
+            typingMsg.className = 'ai-msg ai-msg-bot';
+            typingMsg.id = 'ai-typing';
+            typingMsg.innerHTML = '<div class="ai-msg-avatar"><i class="fa-solid fa-robot"></i></div>' +
+                '<div class="ai-msg-bubble ai-typing"><span></span><span></span><span></span></div>';
+            messages.appendChild(typingMsg);
+            messages.scrollTop = messages.scrollHeight;
+
+            // Send to backend
+            fetch('/api/ai-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    var typing = document.getElementById('ai-typing');
+                    if (typing) typing.remove();
+
+                    var botMsg = document.createElement('div');
+                    botMsg.className = 'ai-msg ai-msg-bot';
+                    botMsg.innerHTML = '<div class="ai-msg-avatar"><i class="fa-solid fa-robot"></i></div><div class="ai-msg-bubble"></div>';
+                    messages.appendChild(botMsg);
+
+                    var bubble = botMsg.querySelector('.ai-msg-bubble');
+                    typewriterEffect(bubble, data.answer || 'Maaf, saya tidak bisa menjawab.', function () {
+                        sendBtn.disabled = false;
+                        input.focus();
+                    });
+                })
+                .catch(() => {
+                    var typing = document.getElementById('ai-typing');
+                    if (typing) typing.remove();
+
+                    var errMsg = document.createElement('div');
+                    errMsg.className = 'ai-msg ai-msg-bot';
+                    errMsg.innerHTML = '<div class="ai-msg-avatar"><i class="fa-solid fa-robot"></i></div>' +
+                        '<div class="ai-msg-bubble">Terjadi kesalahan jaringan. Coba lagi nanti.</div>';
+                    messages.appendChild(errMsg);
+                    messages.scrollTop = messages.scrollHeight;
+                    sendBtn.disabled = false;
+                    input.focus();
+                });
+        }
+    </script>
+</body>
+
+</html>

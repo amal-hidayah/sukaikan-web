@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SUKAIKAN{% endblock %}
+
+{% block content %}
+<section class="section bg-gray-50">
+    <div class="container">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1>Dashboard Admin</h1>
+                <p class="text-gray-500">Kelola pesanan, produk, dan batch pengiriman.</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="card p-3 flex items-center gap-3">
+                    <div class="text-right">
+                        <p class="text-xs text-gray-400 font-bold uppercase">Total Penjualan</p>
+                        <p class="text-xl font-bold text-primary">Rp {{ "{:,.0f}".format(total_penjualan) }}</p>
+                    </div>
+                    <div class="bg-blue-100 text-blue-600 p-2 rounded-full"><i class="fa-solid fa-wallet"></i></div>
+                </div>
+                <div class="card p-3 flex items-center gap-3">
+                    <div class="text-right">
+                        <p class="text-xs text-gray-400 font-bold uppercase">Total Berat</p>
+                        <p class="text-xl font-bold text-primary">{{ total_kg }} kg</p>
+                    </div>
+                    <div class="bg-blue-100 text-blue-600 p-2 rounded-full"><i class="fa-solid fa-weight-hanging"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Tabs Implementation -->
+        <div class="admin-tabs mb-6">
+            <div class="flex border-b border-gray-200">
+                <button class="px-6 py-3 font-medium text-primary border-b-2 border-primary focus:outline-none"
+                    onclick="openTab(event, 'tab-orders')">
+                    <i class="fa-solid fa-list-check"></i> Pesanan
+                </button>
+                <button class="px-6 py-3 font-medium text-gray-500 hover:text-primary focus:outline-none"
+                    onclick="openTab(event, 'tab-products')">
+                    <i class="fa-solid fa-fish-fins"></i> Produk
+                </button>
+                <button class="px-6 py-3 font-medium text-gray-500 hover:text-primary focus:outline-none"
+                    onclick="openTab(event, 'tab-batch')">
+                    <i class="fa-solid fa-calendar-days"></i> Pengaturan Batch
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content: Orders -->
+        <div id="tab-orders" class="tab-content block">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Daftar Pesanan Masuk</h3>
+                    <div class="overflow-x-auto">
+                        <table class="table w-full">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nama / HP</th>
+                                    <th>Lokasi</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Bukti</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for o in orders %}
+                                <tr class="border-b last:border-0 hover:bg-gray-50">
+                                    <td class="font-mono text-sm py-3">#{{ o.id }}</td>
+                                    <td class="py-3">
+                                        <div class="font-bold">{{ o.nama }}</div>
+                                        <div class="text-xs text-gray-500">{{ o.hp }}</div>
+                                    </td>
+                                    <td class="text-sm py-3">{{ o.kecamatan }}</td>
+                                    <td class="font-bold text-green-600 py-3">Rp {{ "{:,.0f}".format(o.total) }}</td>
+                                    <td class="py-3">
+                                        <form method="post" action="{{ url_for('admin_update_status', order_id=o.id) }}"
+                                            class="flex items-center gap-2">
+                                            <select name="status"
+                                                class="form-select text-xs py-1 pl-2 pr-6 border-gray-300 rounded shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                                                onchange="this.form.submit()">
+                                                <option value="Menunggu Pembayaran" {% if
+                                                    o.status=='Menunggu Pembayaran' %}selected{% endif %}>Menunggu
+                                                    Pembayaran</option>
+                                                <option value="Sudah Dibayar" {% if o.status=='Sudah Dibayar'
+                                                    %}selected{% endif %}>Sudah Dibayar</option>
+                                                <option value="Sedang Dikirim" {% if o.status=='Sedang Dikirim'
+                                                    %}selected{% endif %}>Sedang Dikirim</option>
+                                                <option value="Selesai" {% if o.status=='Selesai' %}selected{% endif %}>
+                                                    Selesai</option>
+                                                <option value="Dibatalkan" {% if o.status=='Dibatalkan' %}selected{%
+                                                    endif %}>Dibatalkan</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                    <td class="py-3">
+                                        {% if o.bukti_path %}
+                                        <a href="{{ url_for('uploaded_file', filename=o.bukti_path) }}" target="_blank"
+                                            class="text-primary hover:underline text-xs">
+                                            <i class="fa-solid fa-paperclip"></i> Lihat
+                                        </a>
+                                        {% else %}
+                                        <span class="text-gray-400 text-xs">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <button onclick="toggleDetails('details-{{ o.id }}')"
+                                            class="btn btn-ghost btn-sm text-gray-500 hover:text-primary">
+                                            <i class="fa-solid fa-eye"></i> Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr id="details-{{ o.id }}" class="hidden bg-gray-50">
+                                    <td colspan="7" class="p-4">
+                                        <div class="grid grid-2 gap-4 text-sm">
+                                            <div>
+                                                <h4 class="font-bold mb-2">Alamat Lengkap</h4>
+                                                {% if o.maps_url %}
+                                                <a href="{{ o.maps_url }}" target="_blank"
+                                                    class="btn btn-outline btn-xs mb-2">
+                                                    <i class="fa-solid fa-map-location-dot"></i> Buka Google Maps
+                                                </a>
+                                                <p class="text-gray-700">{{ o.alamat_display }}</p>
+                                                {% else %}
+                                                <p>{{ o.alamat }}</p>
+                                                {% endif %}
+                                                <p class="text-gray-500 mt-1">{{ o.kecamatan }}</p>
+
+                                                <h4 class="font-bold mt-4 mb-2">Info Pembayaran</h4>
+                                                <p>Metode: {{ o.metode_bayar }}</p>
+                                                <p>Deadline: {{ o.payment_deadline or "-" }}</p>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold mb-2">Item Pesanan</h4>
+                                                <ul class="list-disc pl-4">
+                                                    {% for item in o.items_list %}
+                                                    <li>{{ item.nama }} ({{ item.qty }} kg) - Rp {{
+                                                        "{:,.0f}".format(item.harga_per_kg) }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-8 text-gray-400">Belum ada pesanan masuk.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Products -->
+        <div id="tab-products" class="tab-content hidden">
+            <div class="card">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="card-title">Daftar Produk Aktif</h3>
+                        <a href="{{ url_for('admin_tambah_produk') }}" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-plus"></i> Tambah Produk
+                        </a>
+                    </div>
+                    {% if products %}
+                    <div class="grid grid-3 gap-4">
+                        {% for p in products %}
+                        <div class="border rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-lg">{{ p.nama }}</h4>
+                                <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">{{ p.kategori
+                                    }}</span>
+                            </div>
+                            <p class="text-primary font-bold mb-2">Rp {{ "{:,.0f}".format(p.harga_per_kg) }}</p>
+                            <p class="text-xs text-gray-500 mb-2">{{ p.ukuran }}</p>
+                            <div class="flex gap-2 mt-4">
+                                <a href="{{ url_for('admin_edit_produk', product_id=p.id) }}"
+                                    class="btn btn-outline btn-sm flex-1 text-xs justify-center">Edit</a>
+                                <form action="{{ url_for('admin_hapus_produk', product_id=p.id) }}" method="post"
+                                    onsubmit="return confirm('Yakin hapus produk ini?');">
+                                    <button type="submit" class="btn btn-ghost btn-sm text-red-500" title="Hapus"><i
+                                            class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-6">Belum ada produk aktif.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Batch -->
+        <div id="tab-batch" class="tab-content hidden">
+            <div class="card max-w-2xl mx-auto">
+                <div class="card-body">
+                    <h3 class="card-title mb-6">Pengaturan Batch Pengiriman</h3>
+                    <form method="post" action="{{ url_for('admin_update_batch') }}">
+                        <div class="form-group mb-4">
+                            <label class="form-label">Nama Batch</label>
+                            <input type="text" name="nama" value="{{ batch.nama }}" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label class="form-label">Tanggal Pengiriman (Teks)</label>
+                            <input type="text" name="tanggal_pengiriman" value="{{ batch.tanggal_pengiriman }}"
+                                class="form-control" required placeholder="Contoh: Sabtu, 20 Februari 2026">
+                        </div>
+                        <div class="grid grid-2 gap-4 mb-4">
+                            <div class="form-group">
+                                <label class="form-label">Status PO</label>
+                                <select name="status" class="form-control">
+                                    <option value="Buka" {% if batch.status=='Buka' %}selected{% endif %}>Buka</option>
+                                    <option value="Tutup" {% if batch.status=='Tutup' %}selected{% endif %}>Tutup
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-group">
+                                    <label class="form-label">Sisa Waktu (Countdown)</label>
+                                    <div class="grid grid-3 gap-2">
+                                        <div>
+                                            <label class="text-xs text-gray-500">Hari</label>
+                                            <input type="number" name="d" value="{{ countdown.d }}" min="0"
+                                                class="form-control text-center">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-gray-500">Jam</label>
+                                            <input type="number" name="h" value="{{ countdown.h }}" min="0" max="23"
+                                                class="form-control text-center">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-gray-500">Menit</label>
+                                            <input type="number" name="m" value="{{ countdown.m }}" min="0" max="59"
+                                                class="form-control text-center">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning text-sm mb-6">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Mengubah status ke "Tutup" akan
+                            menonaktifkan tombol beli di halaman depan.
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Simpan Perubahan Batch</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+
+        // Hide all tab content
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.add("hidden");
+            tabcontent[i].classList.remove("block");
+        }
+
+        // Remove "active" visual from all tabs
+        tablinks = document.querySelectorAll(".admin-tabs button");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("border-primary", "text-primary");
+            tablinks[i].classList.add("text-gray-500", "border-transparent");
+        }
+
+        // Show current tab
+        document.getElementById(tabName).classList.remove("hidden");
+        document.getElementById(tabName).classList.add("block");
+
+        // Add "active" visual
+        evt.currentTarget.classList.remove("text-gray-500", "border-transparent");
+        evt.currentTarget.classList.add("border-primary", "text-primary");
+    }
+
+    function toggleDetails(id) {
+        var el = document.getElementById(id);
+        if (el.classList.contains("hidden")) {
+            el.classList.remove("hidden");
+        } else {
+            el.classList.add("hidden");
+        }
+    }
+</script>
+{% endblock %}
